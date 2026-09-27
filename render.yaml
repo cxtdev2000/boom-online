@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: boom-online-server
+    runtime: node
+    plan: free
+    buildCommand: pnpm install
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18
