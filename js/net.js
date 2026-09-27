@@ -5,12 +5,19 @@
   const STATES = { a: 'alive', t: 'trapped', d: 'dead' };
   const ITEMS = Object.fromEntries(BOOM.ITEMS.map((it) => [it.type[0], it.type]));
 
-  /** Default server: same host when served by the Node server, otherwise the saved address. */
+  const DEFAULT_ONLINE_SERVER = 'boom-online-t8cx.onrender.com';
+
+  /** Default server: same host when served by the Node server, otherwise the saved address or production Render server. */
   function defaultUrl() {
     const saved = BOOM.Settings.data.server;
     if (saved) return saved;
-    if (location.protocol.startsWith('http')) return location.host;
-    return 'localhost:3000';
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      return location.host;
+    }
+    if (location.host && location.host.includes('onrender.com')) {
+      return location.host;
+    }
+    return DEFAULT_ONLINE_SERVER;
   }
 
   function toWsUrl(address) {
