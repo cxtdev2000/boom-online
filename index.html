@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Boom Online</title>
+    <link rel="icon" href="assets/images/tile_image.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="stage">
+      <!-- Loading -->
+      <section class="screen active" id="screen-loading">
+        <img class="loading-logo" src="assets/images/tile_image.png" alt="" />
+        <h1 class="loading-title">BOOM ONLINE</h1>
+        <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+        <p class="loading-text" data-i18n="loading">Đang tải...</p>
+      </section>
+
+      <!-- Welcome -->
+      <section class="screen bg-welcome" id="screen-welcome">
+        <button class="btn-game welcome-start" data-action="welcome-start" data-i18n="welcome.start">BẮT ĐẦU</button>
+      </section>
+
+      <!-- Home menu -->
+      <section class="screen bg-home" id="screen-home">
+        <div class="home-menu">
+          <button class="btn-game" data-action="home-start" data-i18n="home.start">BẮT ĐẦU</button>
+          <button class="btn-game" data-action="home-setting" data-i18n="home.setting">CÀI ĐẶT</button>
+          <button class="btn-game" data-action="home-quit" data-i18n="home.quit">THOÁT</button>
+        </div>
+      </section>
+
+      <!-- Mode select -->
+      <section class="screen bg-home dim" id="screen-mode">
+        <button class="btn-back" data-action="go-home" aria-label="Back"></button>
+        <div class="mode-list">
+          <button class="mode-card mode-1p" data-action="mode-1p" aria-label="1P"></button>
+          <button class="mode-card mode-2p" data-action="mode-2p" aria-label="2P"></button>
+        </div>
+        <button class="btn-game mode-online" data-action="mode-online" data-i18n="mode.online">CHƠI ONLINE</button>
+      </section>
+
+      <!-- Room (offline and online share this screen) -->
+      <section class="screen bg-setting" id="screen-room">
+        <div class="panel room-panel">
+          <header class="room-header">
+            <div>
+              <h2 class="panel-title" id="room-title"></h2>
+              <p class="room-sub" id="room-sub"></p>
+            </div>
+            <button class="icon-btn" data-action="room-back" aria-label="Back">
+              <img src="assets/images/buttons/back.png" alt="" />
+            </button>
+          </header>
+          <div class="room-body">
+            <div class="room-left">
+              <div class="slot-grid" id="slot-grid"></div>
+              <div class="card room-info" id="room-chat">
+                <h3 class="card-title" data-i18n="room.chat.title">Chat</h3>
+                <div class="chat-log" id="chat-log"></div>
+                <form class="chat-form" id="chat-form">
+                  <input id="chat-input" maxlength="120" autocomplete="off" data-i18n-placeholder="room.chat.placeholder" />
+                  <button class="btn" type="submit" data-i18n="room.chat.send">Gửi</button>
+                </form>
+              </div>
+              <div class="card room-info" id="room-howto">
+                <h3 class="card-title" data-i18n="room.controls.title">Cách chơi</h3>
+                <div class="howto" id="howto"></div>
+              </div>
+            </div>
+            <div class="room-right">
+              <div class="card picker">
+                <h3 class="card-title" data-i18n="room.map.title">Bản đồ</h3>
+                <div class="picker-row">
+                  <button class="arrow-btn left" data-action="map-prev" aria-label="Previous map"></button>
+                  <img class="map-preview" id="map-preview" alt="" />
+                  <button class="arrow-btn right" data-action="map-next" aria-label="Next map"></button>
+                </div>
+                <p class="picker-caption" id="map-name"></p>
+              </div>
+              <div class="card picker">
+                <h3 class="card-title" data-i18n="room.character.title">Nhân vật</h3>
+                <div class="picker-row">
+                  <button class="arrow-btn left" data-action="char-prev" aria-label="Previous character"></button>
+                  <img class="char-preview" id="char-preview" alt="" />
+                  <button class="arrow-btn right" data-action="char-next" aria-label="Next character"></button>
+                </div>
+                <p class="picker-caption" id="char-name"></p>
+              </div>
+              <button class="btn btn-primary btn-big" id="room-primary"></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Online lobby -->
+      <section class="screen bg-setting" id="screen-lobby">
+        <div class="panel lobby-panel">
+          <header class="room-header">
+            <h2 class="panel-title" data-i18n="lobby.title">Sảnh chờ</h2>
+            <button class="icon-btn" data-action="lobby-back" aria-label="Back">
+              <img src="assets/images/buttons/back.png" alt="" />
+            </button>
+          </header>
+          <form class="lobby-connect" id="lobby-connect">
+            <label>
+              <span data-i18n="setting.name">Tên hiển thị</span>
+              <input id="lobby-name" maxlength="12" autocomplete="off" />
+            </label>
+            <label>
+              <span data-i18n="online.server">Máy chủ</span>
+              <input id="lobby-server" autocomplete="off" spellcheck="false" />
+            </label>
+            <button class="btn btn-primary" type="submit" data-i18n="online.connect">Kết nối</button>
+          </form>
+          <p class="lobby-status" id="lobby-status"></p>
+          <div class="lobby-main" id="lobby-main">
+            <div class="lobby-toolbar">
+              <strong data-i18n="lobby.title">Sảnh chờ</strong>
+              <button class="btn btn-primary" data-action="lobby-create" data-i18n="lobby.btn.create">Tạo phòng</button>
+              <button class="btn" data-action="lobby-refresh" data-i18n="lobby.btn.refresh">Làm mới</button>
+              <form class="join-code" id="join-code">
+                <input id="join-code-input" maxlength="5" autocomplete="off" data-i18n-placeholder="online.room_code" />
+                <button class="btn" type="submit" data-i18n="online.join_code">Vào bằng mã</button>
+              </form>
+            </div>
+            <ul class="room-list" id="room-list"></ul>
+            <div class="lobby-pager">
+              <span id="lobby-page"></span>
+              <div>
+                <button class="arrow-btn left small" data-action="lobby-prev" aria-label="Previous page"></button>
+                <button class="arrow-btn right small" data-action="lobby-next" aria-label="Next page"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section class="screen bg-home washed" id="screen-settings">
+        <div class="panel settings-panel">
+          <header class="settings-header">
+            <img class="settings-icon" src="assets/images/setting.svg" alt="" />
+            <h2 class="panel-title" data-i18n="setting.title">Cài đặt</h2>
+          </header>
+          <div class="settings-scroll">
+            <div class="card settings-card">
+              <h3 class="settings-heading" data-i18n="audio.title">Cài đặt âm thanh</h3>
+              <p class="settings-desc" data-i18n="audio.desc">Tùy chỉnh trải nghiệm nghe</p>
+              <div class="setting-row">
+                <span data-i18n="audio.label.music">Nhạc nền</span>
+                <input type="checkbox" id="set-music" />
+                <input type="range" id="set-music-volume" min="0" max="100" />
+              </div>
+              <div class="setting-row">
+                <span data-i18n="audio.label.sfx">Hiệu ứng (SFX)</span>
+                <input type="checkbox" id="set-sfx" />
+                <input type="range" id="set-sfx-volume" min="0" max="100" />
+              </div>
+              <div class="setting-row">
+                <span data-i18n="audio.label.master">Âm lượng tổng</span>
+                <span></span>
+                <input type="range" id="set-master" min="0" max="100" />
+              </div>
+            </div>
+            <div class="card settings-card">
+              <h3 class="settings-heading small" data-i18n="setting.general">Chung</h3>
+              <div class="setting-row">
+                <span data-i18n="setting.language">Ngôn ngữ</span>
+                <div class="segmented" id="set-lang">
+                  <button data-lang="vi">Tiếng Việt</button>
+                  <button data-lang="en">English</button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <span data-i18n="setting.name">Tên hiển thị</span>
+                <input id="set-name" maxlength="12" autocomplete="off" />
+              </div>
+            </div>
+            <div class="card settings-card">
+              <h3 class="settings-heading small" data-i18n="setting.controls">Phím điều khiển</h3>
+              <p class="settings-desc" data-i18n="setting.controls.hint"></p>
+              <table class="keys-table" id="keys-table"></table>
+              <button class="btn" data-action="keys-reset" data-i18n="setting.controls.reset">Mặc định</button>
+            </div>
+          </div>
+          <button class="btn settings-back" data-action="settings-back" data-i18n="common.back">Quay lại</button>
+        </div>
+      </section>
+
+      <!-- In game -->
+      <section class="screen" id="screen-game">
+        <canvas id="game" width="1200" height="624"></canvas>
+
+        <div class="overlay" id="pause-overlay" hidden>
+          <div class="pause-board">
+            <button class="pix sound-btn" id="pause-music" style="left: 188px; top: 112px" aria-label="Music"></button>
+            <button class="pix sound-btn" id="pause-sfx" style="left: 188px; top: 160px" aria-label="SFX"></button>
+            <div class="pix volume" id="pause-volume" style="left: 43px; top: 258px">
+              <div class="volume-knob" id="pause-knob"></div>
+            </div>
+            <button class="pix urm" data-row="0" data-action="pause-resume" style="left: 32px; top: 310px" aria-label="Resume"></button>
+            <button class="pix urm" data-row="1" data-action="pause-restart" id="pause-restart" style="left: 101px; top: 310px" aria-label="Restart"></button>
+            <button class="pix urm" data-row="2" data-action="pause-home" style="left: 170px; top: 310px" aria-label="Home"></button>
+          </div>
+          <p class="pause-hint" data-i18n="pause.hint">Esc: tiếp tục</p>
+        </div>
+
+        <div class="overlay" id="result-overlay" hidden>
+          <div class="result-card" id="result-card">
+            <h2 class="result-title" id="result-title"></h2>
+            <p class="result-msg" id="result-msg"></p>
+            <ul class="result-players" id="result-players"></ul>
+            <div class="result-actions">
+              <button class="btn" data-action="result-again" id="result-again" data-i18n="result.again">Chơi lại</button>
+              <button class="btn" data-action="result-room" data-i18n="result.room">Về phòng</button>
+              <button class="btn" data-action="result-home" data-i18n="result.home">Về menu</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="toast" id="toast" hidden></div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/maps-data.js"></script>
+    <script src="js/map.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/ai.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/assets.js"></script>
+    <script src="js/audio.js"></script>
+    <script src="js/input.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/net.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/room-screen.js"></script>
+    <script src="js/lobby-screen.js"></script>
+    <script src="js/settings-screen.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>
