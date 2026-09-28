@@ -1,5 +1,5 @@
 /* Global namespace and tunable constants. Shared by the browser client and the Node server. */
-globalThis.BOOM = {};
+globalThis.BOOM = globalThis.BOOM || {};
 
 BOOM.CONFIG = {
   DEFAULT_SERVER: 'boom-online-t8cx.onrender.com', // Public Render WebSocket backend

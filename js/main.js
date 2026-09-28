@@ -91,12 +91,20 @@
       handleEvents(game, game.events);
       game.events.length = 0;
     } else {
-      session.view.tick(dt);
       const cmd = paused ? IDLE : BOOM.Input.command(['p1', 'p2']);
+      session.view.tick(dt, cmd);
       const key = `${cmd.dx},${cmd.dy}`;
-      if (key !== session.lastInput || cmd.bomb) {
+      const now = performance.now();
+      if (key !== session.lastInput || cmd.bomb || (key !== '0,0' && now - (session.lastSendTime || 0) > 200)) {
         session.lastInput = key;
-        BOOM.Net.send({ t: 'input', ...cmd });
+        session.lastSendTime = now;
+        const you = session.view.players[session.view.youId];
+        BOOM.Net.send({
+          t: 'input',
+          ...cmd,
+          x: you ? Math.round(you.x * 1000) / 1000 : undefined,
+          y: you ? Math.round(you.y * 1000) / 1000 : undefined,
+        });
       }
     }
     if (session.endTimer !== null) {

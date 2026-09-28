@@ -129,6 +129,32 @@
       this.time = 0;
     }
 
+    tryOptimisticBomb(p) {
+      if (this.phase !== 'play' || p.state !== 'alive') return false;
+      const c = Math.floor(p.x);
+      const r = Math.floor(p.y);
+      const activeBombs = this.bombs.filter((b) => b.owner === p.id && !b.exploded).length;
+      if (activeBombs >= p.maxBombs || this.bombAt(c, r) || this.tileAt(c, r) !== BOOM.TILE.FLOOR) {
+        return false;
+      }
+      const passers = new Set(
+        this.players
+          .filter((q) => q.state !== 'dead' && Math.floor(q.x) === c && Math.floor(q.y) === r)
+          .map((q) => q.id)
+      );
+      this.bombs.push({
+        c,
+        r,
+        owner: p.id,
+        born: this.time,
+        passers,
+        exploded: false,
+        optimistic: true,
+      });
+      BOOM.Audio.play('place');
+      return true;
+    }
+
     /** Apply a snapshot; returns the events it carried. */
     apply(s) {
       if (Math.abs(this.time - s.t) > 0.15) this.time = s.t;
@@ -136,25 +162,64 @@
       this.phaseTimer = s.pt;
       this.roundTime = s.rt;
       this.winnerTeam = s.w;
+
       s.p.forEach((a, i) => {
         const p = this.players[i];
         if (!p) return;
         [p.tx, p.ty] = a;
-        if (Math.hypot(p.tx - p.x, p.ty - p.y) > 1.5) {
-          p.x = p.tx;
-          p.y = p.ty;
+        const serverState = STATES[a[4]] || 'alive';
+
+        if (i === this.youId) {
+          // Local player reconciliation:
+          p.state = serverState;
+          p.trapTimer = a[5];
+          p.deadTimer = a[6];
+          p.invuln = a[7];
+          p.maxBombs = a[8];
+          p.power = a[9];
+          p.speedLevel = a[10];
+
+          // If dead/trapped, or if position diverged significantly (> 1.2 tiles), snap to server
+          if (p.state !== 'alive' || Math.hypot(p.tx - p.x, p.ty - p.y) > 1.2) {
+            p.x = p.tx;
+            p.y = p.ty;
+            p.dir = DIRS[a[2]] || 'down';
+            p.moving = !!a[3];
+          }
+        } else {
+          // Remote players:
+          if (Math.hypot(p.tx - p.x, p.ty - p.y) > 1.8) {
+            p.x = p.tx;
+            p.y = p.ty;
+          }
+          p.dir = DIRS[a[2]] || 'down';
+          p.moving = !!a[3];
+          p.state = serverState;
+          p.trapTimer = a[5];
+          p.deadTimer = a[6];
+          p.invuln = a[7];
+          p.maxBombs = a[8];
+          p.power = a[9];
+          p.speedLevel = a[10];
         }
-        p.dir = DIRS[a[2]] || 'down';
-        p.moving = !!a[3];
-        p.state = STATES[a[4]] || 'alive';
-        p.trapTimer = a[5];
-        p.deadTimer = a[6];
-        p.invuln = a[7];
-        p.maxBombs = a[8];
-        p.power = a[9];
-        p.speedLevel = a[10];
       });
-      this.bombs = s.b.map(([c, r, owner, born]) => ({ c, r, owner, born }));
+
+      // Merge server authoritative bombs with recent local optimistic bombs
+      const serverBombs = s.b.map(([c, r, owner, born]) => {
+        const existing = this.bombs.find((b) => b.c === c && b.r === r);
+        const passers = existing && existing.passers ? existing.passers : new Set(
+          this.players
+            .filter((q) => q.state !== 'dead' && Math.floor(q.x) === c && Math.floor(q.y) === r)
+            .map((q) => q.id)
+        );
+        return { c, r, owner, born, passers, exploded: false };
+      });
+      const now = this.time;
+      const unconfirmed = this.bombs.filter(
+        (b) => b.optimistic && now - b.born < 1.2 && !serverBombs.some((sb) => sb.c === b.c && sb.r === b.r)
+      );
+      this.bombs = [...serverBombs, ...unconfirmed];
+
       this.flames = s.f.map(([c, r, t]) => ({ c, r, t }));
       this.breaking = new Map(s.k);
       if (s.tiles) {
@@ -164,19 +229,73 @@
       return s.e || [];
     }
 
-    /** Advance local clocks and ease players toward their latest server position. */
-    tick(dt) {
+    /** Advance local clocks, predict local player movement, and smooth positions. */
+    tick(dt, cmd) {
       this.time += dt;
-      const k = Math.min(1, dt * 18);
-      for (const p of this.players) {
-        p.animT += dt;
-        p.x += (p.tx - p.x) * k;
-        p.y += (p.ty - p.y) * k;
-        if (p.state === 'dead') p.deadTimer += dt;
-        if (p.state === 'trapped') p.trapTimer = Math.max(0, p.trapTimer - dt);
+      const k = Math.min(1, dt * 26);
+
+      // Local player client-side prediction
+      const you = this.players[this.youId];
+      if (you && you.state !== 'dead' && this.phase === 'play' && cmd) {
+        you.animT += dt;
+        if (cmd.dx || cmd.dy) {
+          const dist = this.speedOf(you) * dt;
+          this.movePlayer(you, cmd.dx, cmd.dy, dist);
+          you.moving = true;
+        } else {
+          you.moving = false;
+        }
+        if (you.invuln > 0) you.invuln = Math.max(0, you.invuln - dt);
+        if (cmd.bomb) this.tryOptimisticBomb(you);
       }
+
+      // Solidify balloons after stepping off
+      for (const b of this.bombs) {
+        if (!b.passers) continue;
+        for (const id of b.passers) {
+          const q = this.players[id];
+          if (q && (Math.floor(q.x) !== b.c || Math.floor(q.y) !== b.r)) {
+            b.passers.delete(id);
+          }
+        }
+      }
+
+      for (const p of this.players) {
+        if (p.id === this.youId) {
+          if (p.state !== 'alive' || this.phase !== 'play') {
+            p.x += (p.tx - p.x) * k;
+            p.y += (p.ty - p.y) * k;
+          } else {
+            // Minor smooth reconciliation when stopping or idle
+            const dist = Math.hypot(p.tx - p.x, p.ty - p.y);
+            if (dist > 1.2) {
+              p.x = p.tx;
+              p.y = p.ty;
+            } else if (dist > 0.04 && (!cmd || (!cmd.dx && !cmd.dy))) {
+              p.x += (p.tx - p.x) * Math.min(1, dt * 14);
+              p.y += (p.ty - p.y) * Math.min(1, dt * 14);
+            }
+          }
+          if (p.state === 'dead') p.deadTimer += dt;
+          if (p.state === 'trapped') p.trapTimer = Math.max(0, p.trapTimer - dt);
+        } else {
+          p.animT += dt;
+          p.x += (p.tx - p.x) * k;
+          p.y += (p.ty - p.y) * k;
+          if (p.state === 'dead') p.deadTimer += dt;
+          if (p.state === 'trapped') p.trapTimer = Math.max(0, p.trapTimer - dt);
+        }
+      }
+
       for (const f of this.flames) f.t = Math.max(0.001, f.t - dt);
       if (this.phase === 'play') this.roundTime -= dt;
     }
   };
+
+  // Inherit movement and map query physics from BOOM.Game
+  for (const m of ['idx', 'inBounds', 'tileAt', 'isBreakable', 'bombAt', 'flameAt', 'isWalkable', 'speedOf', 'movePlayer', 'moveAxis']) {
+    if (BOOM.Game && BOOM.Game.prototype[m]) {
+      BOOM.NetView.prototype[m] = BOOM.Game.prototype[m];
+    }
+  }
 })();

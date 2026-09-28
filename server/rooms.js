@@ -280,6 +280,17 @@ const handlers = {
     input.dx = Math.sign(Number(msg.dx) || 0);
     input.dy = input.dx ? 0 : Math.sign(Number(msg.dy) || 0);
     if (msg.bomb) input.bomb = true;
+
+    if (room.game && typeof msg.x === 'number' && typeof msg.y === 'number') {
+      const p = room.game.players.find((q) => q.ctrl === client.id);
+      if (p && p.state === 'alive') {
+        const dist = Math.hypot(p.x - msg.x, p.y - msg.y);
+        if (dist < 1.1 && room.game.isWalkable(Math.floor(msg.x), Math.floor(msg.y), p)) {
+          p.x = msg.x;
+          p.y = msg.y;
+        }
+      }
+    }
   },
 };
 
