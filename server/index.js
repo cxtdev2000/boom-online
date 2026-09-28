@@ -44,6 +44,10 @@ function serveFile(req, res, file, stat) {
 }
 
 const server = http.createServer((req, res) => {
+  if (req.headers['x-forwarded-proto'] === 'http') {
+    res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
+    return res.end();
+  }
   let rel;
   try {
     rel = decodeURIComponent(new URL(req.url, 'http://x').pathname).replace(/^\/+/, '') || 'index.html';
