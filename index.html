@@ -104,14 +104,11 @@
             </button>
           </header>
           <form class="lobby-connect" id="lobby-connect">
-            <label>
+            <label class="lobby-name-field">
               <span data-i18n="setting.name">Tên hiển thị</span>
-              <input id="lobby-name" maxlength="12" autocomplete="off" />
+              <input id="lobby-name" maxlength="12" autocomplete="off" placeholder="Nhập tên..." />
             </label>
-            <label>
-              <span data-i18n="online.server">Máy chủ</span>
-              <input id="lobby-server" autocomplete="off" spellcheck="false" />
-            </label>
+            <input type="hidden" id="lobby-server" />
             <button class="btn btn-primary" type="submit" data-i18n="online.connect">Kết nối</button>
           </form>
           <p class="lobby-status" id="lobby-status"></p>

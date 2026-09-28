@@ -101,9 +101,11 @@
 
   async function connect() {
     if (connecting) return;
-    const name = $('lobby-name').value.trim() || BOOM.Settings.data.name;
-    const server = $('lobby-server').value.trim() || BOOM.Net.defaultUrl();
-    BOOM.Settings.set({ name, server: server === location.host ? '' : server });
+    const nameEl = $('lobby-name');
+    const name = (nameEl ? nameEl.value.trim() : '') || BOOM.Settings.data.name || 'Guest';
+    const serverEl = $('lobby-server');
+    const server = (serverEl && serverEl.value.trim()) || BOOM.Net.defaultUrl();
+    BOOM.Settings.set({ name });
     connecting = true;
     setStatus(t('online.connecting'));
     try {
@@ -119,8 +121,10 @@
 
   UI.onEnter('lobby', (opts) => {
     BOOM.Audio.music('online');
-    $('lobby-name').value = BOOM.Settings.data.name;
-    $('lobby-server').value = BOOM.Net.defaultUrl();
+    const nameEl = $('lobby-name');
+    if (nameEl) nameEl.value = BOOM.Settings.data.name || 'Guest';
+    const serverEl = $('lobby-server');
+    if (serverEl) serverEl.value = BOOM.Net.defaultUrl();
     renderRooms();
     if (BOOM.Net.connected && me) {
       showMain(true);

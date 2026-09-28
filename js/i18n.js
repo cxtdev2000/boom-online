@@ -68,7 +68,7 @@
       'online.connected': 'Đã kết nối',
       'online.disconnected': 'Mất kết nối máy chủ',
       'online.need_server':
-        'Chế độ online cần chạy máy chủ: mở terminal trong thư mục game, gõ "pnpm install" rồi "pnpm start", sau đó mở địa chỉ máy chủ hiển thị.',
+        'Không thể kết nối máy chủ online. Nếu máy chủ đang khởi động lại (Render ngủ đông), vui lòng bấm "Kết nối" thử lại sau vài giây.',
       'online.room_code': 'Mã phòng',
       'online.join_code': 'Vào bằng mã',
       'online.chat.joined': '%s đã vào phòng.',
@@ -161,7 +161,7 @@
       'online.connected': 'Connected',
       'online.disconnected': 'Disconnected from server',
       'online.need_server':
-        'Online mode needs the server: open a terminal in the game folder, run "pnpm install" then "pnpm start", and open the address it prints.',
+        'Cannot connect to the online server. If the server is waking up, please click "Connect" again in a few seconds.',
       'online.room_code': 'Room code',
       'online.join_code': 'Join by code',
       'online.chat.joined': '%s joined the room.',

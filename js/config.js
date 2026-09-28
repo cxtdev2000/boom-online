@@ -2,6 +2,7 @@
 globalThis.BOOM = {};
 
 BOOM.CONFIG = {
+  DEFAULT_SERVER: 'boom-online-t8cx.onrender.com', // Public Render WebSocket backend
   COLS: 21,
   ROWS: 13,
   TILE: 48,
