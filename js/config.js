@@ -2,7 +2,7 @@
 globalThis.BOOM = globalThis.BOOM || {};
 
 BOOM.CONFIG = {
-  DEFAULT_SERVER: 'boom-online-t8cx.onrender.com', // Public Render WebSocket backend
+  DEFAULT_SERVER: 'boom-online-sg.onrender.com', // Public Render Singapore WebSocket backend
   COLS: 21,
   ROWS: 13,
   TILE: 48,

@@ -7,7 +7,7 @@
 
   const DEFAULT_ONLINE_SERVER = (typeof BOOM !== 'undefined' && BOOM.CONFIG && BOOM.CONFIG.DEFAULT_SERVER)
     ? BOOM.CONFIG.DEFAULT_SERVER
-    : 'boom-online-t8cx.onrender.com';
+    : 'boom-online-sg.onrender.com';
 
   /** Default server: configured render server in BOOM.CONFIG, or local host if developing locally. */
   function defaultUrl() {
@@ -15,11 +15,11 @@
     if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
       return location.host;
     }
-    if (location.host && location.host.includes('onrender.com')) {
+    if (location.host && (location.host.includes('onrender.com') || location.host === 'boom.maverick.io.vn')) {
       return location.host;
     }
     const saved = BOOM.Settings && BOOM.Settings.data && BOOM.Settings.data.server;
-    if (saved && saved !== 'boom.maverick.io.vn' && saved !== 'loquacious-crisp-0510b6.netlify.app' && !saved.includes('netlify.app')) {
+    if (saved && saved !== 'boom-online-t8cx.onrender.com' && !saved.includes('netlify.app')) {
       return saved;
     }
     return configured;
