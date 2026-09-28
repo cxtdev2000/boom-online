@@ -44,6 +44,7 @@ function serveFile(req, res, file, stat) {
 }
 
 const server = http.createServer((req, res) => {
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
   if (req.headers['x-forwarded-proto'] === 'http') {
     res.writeHead(301, { Location: `https://${req.headers.host}${req.url}` });
     return res.end();
